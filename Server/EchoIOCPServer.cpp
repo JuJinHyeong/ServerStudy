@@ -1,14 +1,3 @@
-/*
-## 소켓 서버 : 1 v n - IOCP
-1. socket()            : 소켓생성
-2. bind()            : 소켓설정
-3. listen()            : 수신대기열생성
-4. accept()            : 연결대기
-5. read()&write()
-    WIN recv()&send    : 데이터 읽고쓰기
-6. close()
-    WIN closesocket    : 소켓종료
-*/
 #include<iostream>
 #include<tchar.h>
 #include<winsock2.h>
@@ -69,7 +58,6 @@ int _tmain(int argc, _TCHAR* argv[])
     serverAddr.sin_port = htons(SERVER_PORT);
     serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 
-    // 소켓 Bind
     if (bind(listenSocket, (SOCKADDR*)&serverAddr, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
     {
         errQuit(L"ERROR - Fail bind");
@@ -78,7 +66,6 @@ int _tmain(int argc, _TCHAR* argv[])
         return 1;
     }
 
-    // 3. 수신대기열생성
     if (listen(listenSocket, 5) == SOCKET_ERROR)
     {
         errQuit(L"ERROR - Fail listen");
@@ -92,9 +79,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
     // 워커스레드 생성
     int threadCount = 1;
-    // - thread Handler 선언
+    // thread Handler 선언
     thread* hThread = (thread*)malloc(threadCount * sizeof(thread));
-    // - thread 생성
+    // thread 생성
     for (int i = 0; i < threadCount; i++)
     {
         hThread[i] = thread(ReceiveThread, &hIOCP);
@@ -128,7 +115,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
         hIOCP = CreateIoCompletionPort((HANDLE)clientSocket, hIOCP, (DWORD)socketInfo, 0);
 
-        // 중첩 소캣을 지정하고 완료시 실행될 함수를 넘겨준다.
         if (WSARecv(socketInfo->socket, &socketInfo->dataBuffer, 1, &receiveBytes, &flags, &(socketInfo->overlapped), NULL))
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
@@ -143,10 +129,8 @@ int _tmain(int argc, _TCHAR* argv[])
         hThread[i].join();
     }
 
-    // 6-2. 리슨 소켓종료
     closesocket(listenSocket);
 
-    // Winsock End
     WSACleanup();
 
     return 0;

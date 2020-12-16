@@ -43,11 +43,11 @@ int _tmain(int argc, _TCHAR* argv[])
     serverAddr.sin_port = htons(SERVER_PORT);
     inet_pton(serverAddr.sin_family, SERVER_IP, &serverAddr.sin_addr.s_addr);
 
-    // 2. 연결요청
+    // 연결요청
     if (connect(listenSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
     {
         printf("Error - Fail to connect\n");
-        // 4. 소켓종료
+        // 소켓종료
         closesocket(listenSocket);
         // Winsock End
         WSACleanup();
@@ -86,12 +86,12 @@ int _tmain(int argc, _TCHAR* argv[])
         socketInfo->dataBuffer.len = bufferLen;
         socketInfo->dataBuffer.buf = messageBuffer;
 
-        // 3-1. 데이터 쓰기
+        // 데이터 쓰기
         int sendBytes = send(listenSocket, messageBuffer, bufferLen, 0);
         if (sendBytes > 0)
         {
             printf("TRACE - Send message : %s (%d bytes)\n", messageBuffer, sendBytes);
-            // 3-2. 데이터 읽기
+            // 데이터 읽기
             int receiveBytes = recv(listenSocket, messageBuffer, MAX_BUFFER, 0);
             if (receiveBytes > 0)
             {
@@ -100,7 +100,7 @@ int _tmain(int argc, _TCHAR* argv[])
         }
     }
 
-    // 4. 소켓종료
+    // 소켓종료
     closesocket(listenSocket);
 
     // Winsock End
