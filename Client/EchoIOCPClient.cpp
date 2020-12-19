@@ -72,7 +72,6 @@ int _tmain(int argc, _TCHAR* argv[])
             messageBuffer[bufferLen] = getchar();
             if (messageBuffer[bufferLen] == '\n') {
                 messageBuffer[bufferLen] = '\0';
-                printf("hi");
                 break;
             }
             bufferLen++;
