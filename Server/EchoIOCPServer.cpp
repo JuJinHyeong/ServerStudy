@@ -92,7 +92,7 @@ int _tmain(int argc, _TCHAR* argv[])
         return 1;
     }
     else {
-        cout << "Listen Port:" << serverAddr.sin_port << endl;
+        cout << "Listen Port:" << SERVER_PORT << endl;
     }
 
     // 완료결과를 처리하는 객체(CP : Completion Port) 생성
@@ -153,7 +153,7 @@ DWORD WINAPI AcceptThread(SOCKET* listenSocket, HANDLE* hIOCP) {
             return 1;
         }
         else {
-            cout << "Client Connected" << endl;
+            //printf("accept!\n");
         }
 
         socketInfo = (SOCKETINFO*)malloc(sizeof(SOCKETINFO));
@@ -190,25 +190,26 @@ DWORD WINAPI ReceiveThread(HANDLE* hIOCP)
         // 입출력 완료 대기
         if (GetQueuedCompletionStatus(*hIOCP, &receiveBytes, (PULONG_PTR)&completionKey, (LPOVERLAPPED*)&socketInfo, INFINITE) == 0)
         {
-            errQuit(L"ERROR - GetQueuedCompletionStatus Failure");
+            //errQuit(L"ERROR - GetQueuedCompletionStatus Failure");
             closesocket(socketInfo->socket);
             free(socketInfo);
             return 1;
         }
 
-        socketInfo->dataBuffer.len = receiveBytes;
         socketInfo->receiveBytes = receiveBytes;
 
         if (receiveBytes == 0)
         {
+            //printf("empty\n");
             closesocket(socketInfo->socket);
             free(socketInfo);
             continue;
         }
         else
         {
-            printf("TRACE - Receive message : %s (%d bytes)\n", socketInfo->dataBuffer.buf, socketInfo->dataBuffer.len);
-
+            //printf("recv: %s\n", socketInfo->dataBuffer.buf);
+            socketInfo->dataBuffer.len = 216;
+            strncpy(socketInfo->messageBuffer, "HTTP/1.1 200 OK\nServer: c++\nDate: Mon, 28 Dec 2020 17:01:49 GMT\nContent-Type: text/html\nConnection: keep-alive\nVary: Accept-Encoding\nContent-Length: 61\r\n\r\n<!doctype html>\n<html>\n<head>\n</head>\n<body>\n</body>\n</html>", 216);
             if (WSASend(socketInfo->socket, &(socketInfo->dataBuffer), 1, &sendBytes, 0, NULL, NULL) == SOCKET_ERROR)
             {
                 if (WSAGetLastError() != WSA_IO_PENDING)
@@ -216,9 +217,9 @@ DWORD WINAPI ReceiveThread(HANDLE* hIOCP)
                     errQuit(L"ERROR - Fail WSASend");
                 }
             }
-
-            printf("TRACE - Send message : %s (%d bytes)\n", socketInfo->dataBuffer.buf, socketInfo->dataBuffer.len);
-
+            //printf("send: %s\n", socketInfo->dataBuffer.buf);
+            
+            socketInfo->dataBuffer.len = MAX_BUFFER;
             if (WSARecv(socketInfo->socket, &(socketInfo->dataBuffer), 1, &receiveBytes, &flags, &socketInfo->overlapped, NULL) == SOCKET_ERROR)
             {
                 if (WSAGetLastError() != WSA_IO_PENDING)
